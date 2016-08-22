@@ -22,11 +22,14 @@ import urllib.parse
 import urllib.request
 import shutil
 import os
-import logging
 import concurrent.futures
 import datetime
+import logging.config
 
 from os.path import expanduser
+
+logging.config.fileConfig('logging.conf')
+
 _logger = logging.getLogger("arome")
 _available_time_ranges = ["00H06H", "07H12H", "13H18H",
                           "19H24H", "25H30H", "31H36H", "37H42H"]
@@ -45,6 +48,9 @@ _arome_default_parameters = {'model': 'AROME',
                              }
 
 _urlretrieve = urllib.request.urlretrieve
+
+_AROME_BASE_URL = "http://dcpc-nwp.meteo.fr/services/PS_GetCache_DCPCPreviNum?"
+_AROME_DOWNLOAD_TOKEN = '__5yLVTdr-sGeHoPitnFc7TZ6MhBcJxuSsoZp6y0leVHU__'
 
 
 def get_arome_file(day_in_iso_format, max_time_range='00H06H'):
@@ -109,14 +115,13 @@ def _arome_download(arome_parameters, time_frame='00H06H'):
 
     web_parameters = \
         {'fond': 'donnee_libre',
-         'token': '__5yLVTdr-sGeHoPitnFc7TZ6MhBcJxuSsoZp6y0leVHU__'}
+         'token': _AROME_DOWNLOAD_TOKEN}
 
     arome_parameters['time'] = time_frame
     arome_parameters.update(web_parameters)
     encoded_parameters = urllib.parse.urlencode(arome_parameters)
 
-    url = ("http://dcpc-nwp.metgrabr.fr/services/PS_GetCache_DCPCPreviNum?" +
-           encoded_parameters)
+    url = _AROME_BASE_URL + encoded_parameters
     _logger.debug("Retrieve Arome grib url       : " + url)
     _logger.info("Retrieve Arome grib date      : " +
                  arome_parameters['referencetime'])
@@ -174,8 +179,5 @@ if __name__ == '__main__':
     ''' Launches the Arome grib2 download.
 
     '''
-    # arome.getAromeFile(datetime.date.today().isoformat())
-    import logging.config
-    logging.config.fileConfig('logging.conf')
     get_arome_file(datetime.date.today().isoformat(), '07H12H')
     # grib2ToGrib1("C:\\Users\\Manu\\Downloads\\MeteoFrance\\AROME_2016-05-08T000000_0025_SP1_00H06H.grib2")
